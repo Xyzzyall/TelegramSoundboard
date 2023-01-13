@@ -26,7 +26,7 @@ public class GetSoundHandler : IRequestHandler<GetSoundRequest>
     public async Task<Unit> Handle(GetSoundRequest request, CancellationToken cancellationToken)
     {
         var text = request.Context.Update.Message!.Text!;
-        var name = request.IsPlainText ? text : text[Commands.CommandNames[Commands.Codes.GetSound].Length..];
+        var name = request.NameOverride ?? (request.IsPlainText ? text : text[Commands.CommandNames[Commands.Codes.GetSound].Length..]);
         var sound = await _soundsService.TryGetSoundByNameAsync(name, cancellationToken);
 
         if (sound is null)

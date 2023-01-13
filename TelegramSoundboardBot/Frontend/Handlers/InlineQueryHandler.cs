@@ -26,10 +26,9 @@ public class InlineQueryHandler : IRequestHandler<InlineQueryRequest>
 
         await request.Context.Client.AnswerInlineQueryAsync(
             inlineQueryId,
-            sounds.Select(s => new InlineQueryResultVoice(s.Name, "dummy", s.Name)
-            {
-                InputMessageContent = new InputTextMessageContent(s.Name)
-            }),
+            sounds
+                .Where(s => s.TelegramFileId is not null)
+                .Select(s => new InlineQueryResultCachedVoice(s.Name, s.TelegramFileId!, s.Name)),
             cancellationToken: cancellationToken
         );
         return default;

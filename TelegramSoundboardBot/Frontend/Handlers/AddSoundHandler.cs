@@ -51,7 +51,8 @@ internal class AddSoundHandler : IRequestHandler<AddSoundRequest>
         
         await _mediator.Send(new GetSoundRequest
         {
-            Context = request.Context
+            Context = request.Context,
+            NameOverride = soundName
         }, cancellationToken);
         
         return default;
