@@ -22,6 +22,7 @@ public class GetSoundHandler : IRequestHandler<GetSoundRequest>
         _logger = logger.ForContext<GetSoundHandler>();
     }
 
+    //todo how it will perform when there are multiple requests for one sound?
     public async Task<Unit> Handle(GetSoundRequest request, CancellationToken cancellationToken)
     {
         var text = request.Context.Update.Message!.Text!;
@@ -37,12 +38,15 @@ public class GetSoundHandler : IRequestHandler<GetSoundRequest>
             return default;
         }
 
-        //todo how it will perform when there are multiple requests for one sound?
-        //todo consider using telegram caching with saving fileid (issues with tg bot client lib) 
-        await using var soundStream = _soundLoader.GetSoundStream(sound.OggFilePath);
+        if (sound.TelegramFileId is null)
+        {
+            await using var soundStream = _soundLoader.GetSoundStream(sound.OggFilePath);
+            var fileId = await request.Context.SendVoiceMessageAsync(soundStream, sound.Duration, cancellationToken);
+            await _soundsService.SaveTelegramFileId(sound, fileId);
+            return default;
+        }
 
-        await request.Context.SendVoiceMessageAsync(soundStream, sound.Duration, cancellationToken);
-
+        await request.Context.SendCachedVoiceMessageAsync(sound.TelegramFileId, sound.Duration, cancellationToken);
         return default;
     }
 }

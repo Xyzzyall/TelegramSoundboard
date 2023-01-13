@@ -12,13 +12,15 @@ internal class AddSoundHandler : IRequestHandler<AddSoundRequest>
     private readonly ILocalizationService _localization;
     private readonly ISoundLoader _soundLoader;
     private readonly ISoundsService _soundsService;
+    private readonly IMediator _mediator;
 
     public AddSoundHandler(ISoundLoader soundLoader, ISoundsService soundsService,
-        ILocalizationService localization)
+        ILocalizationService localization, IMediator mediator)
     {
         _soundLoader = soundLoader;
         _soundsService = soundsService;
         _localization = localization;
+        _mediator = mediator;
     }
 
     //todo it looks bad. consider not saving audio files to disk, just passing URL to ffmpeg 
@@ -46,6 +48,12 @@ internal class AddSoundHandler : IRequestHandler<AddSoundRequest>
 
         await request.Context.SendTextMessageAsync(_localization.Localize("SoundSuccessfullyAdded", soundName),
             cancellationToken);
+        
+        await _mediator.Send(new GetSoundRequest
+        {
+            Context = request.Context
+        }, cancellationToken);
+        
         return default;
     }
 }

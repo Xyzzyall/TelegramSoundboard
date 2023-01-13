@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
 
 namespace TelegramSoundboardBot.Frontend;
 
@@ -19,11 +20,18 @@ public class TelegramContext
         await Client.SendTextMessageAsync(Update.Message.Chat.Id, text, cancellationToken: ct);
     }
 
-    public async Task SendVoiceMessageAsync(Stream soundStream, int duration, CancellationToken ct)
+    public async Task SendCachedVoiceMessageAsync(string fileId, int duration, CancellationToken ct)
     {
         if (Update.Message is null) throw new NullReferenceException(nameof(Update.Message));
-
-        await Client.SendVoiceAsync(Update.Message.Chat.Id, soundStream!, cancellationToken: ct, duration: duration);
+        await Client.SendVoiceAsync(Update.Message.Chat.Id, new InputOnlineFile(fileId), cancellationToken: ct,
+            duration: duration);
+    }
+    
+    public async Task<string> SendVoiceMessageAsync(Stream soundStream, int duration, CancellationToken ct)
+    {
+        if (Update.Message is null) throw new NullReferenceException(nameof(Update.Message));
+        var message = await Client.SendVoiceAsync(Update.Message.Chat.Id, soundStream!, cancellationToken: ct, duration: duration);
+        return message.Voice!.FileId;
     }
 
     public CultureInfo GetCulture()

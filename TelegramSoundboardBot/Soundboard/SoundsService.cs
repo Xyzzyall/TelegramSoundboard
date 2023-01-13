@@ -22,6 +22,13 @@ public class SoundsService : ISoundsService
         await _soundboardContext.SaveChangesAsync(ct);
     }
 
+    public async Task SaveTelegramFileId(Sound sound, string fileId)
+    {
+        sound.TelegramFileId = fileId;
+        sound.CachedByTelegramOn = DateTime.Now;
+        await _soundboardContext.SaveChangesAsync();
+    }
+
     public async Task<bool> SoundNameExistAsync(string name, CancellationToken ct)
     {
         return await _soundboardContext.Sounds.AnyAsync(s => s.Name == name, ct);
@@ -47,6 +54,7 @@ public class SoundsService : ISoundsService
 public interface ISoundsService
 {
     Task CreateSound(string name, string filePath, CancellationToken ct, int duration = -1);
+    Task SaveTelegramFileId(Sound sound, string fileId);
     Task<bool> SoundNameExistAsync(string name, CancellationToken ct);
     Task<Sound?> TryGetSoundByNameAsync(string name, CancellationToken ct);
     Task<List<Sound>> GetSoundsWithPartialNameAsync(string name, CancellationToken ct, int take = -1, int skip = -1);
